@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { analyzeDisease } from '../api/client';
 import { diseaseDatabase } from '../data/mockData';
 
@@ -9,8 +9,11 @@ function SeverityBadge({ severity }) {
 export default function DiseaseDetection({ userMobile = '9999999999' }) {
   const [selectedCrop, setSelectedCrop] = useState('Rice');
   const [imageName, setImageName] = useState('');
+  const [imagePreview, setImagePreview] = useState('');
+  const [isDragOver, setIsDragOver] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
+  const fileInputRef = useRef(null);
 
   const cropOptions = useMemo(() => {
     const all = diseaseDatabase
@@ -19,9 +22,46 @@ export default function DiseaseDetection({ userMobile = '9999999999' }) {
     return [...new Set(all)];
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        window.URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
+
+  const setSelectedFile = (file) => {
+    if (!file) {
+      setImageName('');
+      setImagePreview('');
+      return;
+    }
+
+    setImageName(file.name);
+    const nextPreview = window.URL.createObjectURL(file);
+    setImagePreview((prev) => {
+      if (prev) {
+        window.URL.revokeObjectURL(prev);
+      }
+      return nextPreview;
+    });
+  };
+
   const handleFileChange = (event) => {
     const file = event.target.files?.[0];
-    setImageName(file ? file.name : '');
+    setSelectedFile(file);
+  };
+
+  const handleDrop = (event) => {
+    event.preventDefault();
+    setIsDragOver(false);
+    const file = event.dataTransfer.files?.[0];
+    setSelectedFile(file);
+    if (fileInputRef.current) {
+      const transfer = new DataTransfer();
+      transfer.items.add(file);
+      fileInputRef.current.files = transfer.files;
+    }
   };
 
   const handleAnalyze = async () => {
@@ -66,14 +106,54 @@ export default function DiseaseDetection({ userMobile = '9999999999' }) {
 
           <label className="field">
             <span>Leaf Image</span>
-            <input type="file" accept="image/*" onChange={handleFileChange} />
+            <div
+              className={`upload-box ${isDragOver ? 'drag-over' : ''}`}
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={(event) => {
+                event.preventDefault();
+                setIsDragOver(true);
+              }}
+              onDragLeave={() => setIsDragOver(false)}
+              onDrop={handleDrop}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  fileInputRef.current?.click();
+                }
+              }}
+            >
+              {imagePreview ? (
+                <div className="upload-preview">
+                  <img src={imagePreview} alt="Selected leaf preview" />
+                  <p>Click or drop another image to replace</p>
+                </div>
+              ) : (
+                <div className="upload-placeholder">
+                  <span className="upload-icon">↑</span>
+                  <span className="upload-main">Drag and drop a crop image</span>
+                  <span className="upload-sub">or click to browse files</span>
+                </div>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              className="hidden-file-input"
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+            />
           </label>
         </div>
 
         {imageName ? <p className="input-note">Selected: {imageName}</p> : null}
 
         <button type="button" className="primary-btn" onClick={handleAnalyze} disabled={isAnalyzing}>
-          {isAnalyzing ? 'Analyzing...' : 'Run AI Scan'}
+          <span className="btn-content">
+            {isAnalyzing ? <span className="loading-spinner" aria-hidden="true" /> : null}
+            <span>{isAnalyzing ? 'Analyzing...' : 'Run AI Scan'}</span>
+          </span>
         </button>
       </div>
 

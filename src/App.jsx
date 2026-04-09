@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import './App.css';
 import { demoLogin } from './api/client';
 import Sidebar from './components/Sidebar';
@@ -40,10 +40,26 @@ function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [mobileInput, setMobileInput] = useState('9999999999');
   const [authError, setAuthError] = useState('');
+  const [theme, setTheme] = useState(() => {
+    const saved = window.localStorage.getItem('agrivision-theme');
+    if (saved === 'light' || saved === 'dark') {
+      return saved;
+    }
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
   const [session, setSession] = useState(() => {
     const raw = window.localStorage.getItem('agrivision-session');
     return raw ? JSON.parse(raw) : null;
   });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    window.localStorage.setItem('agrivision-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((currentTheme) => (currentTheme === 'light' ? 'dark' : 'light'));
+  };
 
   const onLogin = async () => {
     setAuthError('');
@@ -69,6 +85,11 @@ function App() {
     return (
       <main className="auth-shell">
         <section className="auth-card">
+          <div className="auth-card-top">
+            <button type="button" className="chip-btn theme-btn" onClick={toggleTheme}>
+              {theme === 'light' ? 'Dark mode' : 'Light mode'}
+            </button>
+          </div>
           <p className="hero-eyebrow">AgriVision MVP</p>
           <h1>Farmer Login</h1>
           <p className="hero-subtitle">Use mobile number to continue with the demo account.</p>
@@ -99,13 +120,20 @@ function App() {
           <p className="hero-subtitle">{tabConfig[activeTab].subtitle}</p>
           <div className="session-meta">
             <span>Logged in: {session.user.name} ({session.user.mobile})</span>
-            <button type="button" className="chip-btn" onClick={onLogout}>
-              Logout
-            </button>
+            <div className="session-actions">
+              <button type="button" className="chip-btn theme-btn" onClick={toggleTheme}>
+                {theme === 'light' ? 'Dark mode' : 'Light mode'}
+              </button>
+              <button type="button" className="chip-btn" onClick={onLogout}>
+                Logout
+              </button>
+            </div>
           </div>
         </header>
 
-        <CurrentView userMobile={session.user.mobile} />
+        <div key={activeTab} className="view-transition">
+          <CurrentView userMobile={session.user.mobile} />
+        </div>
       </main>
     </div>
   );

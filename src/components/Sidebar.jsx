@@ -1,11 +1,11 @@
 import { useState } from 'react';
 
 const navItems = [
-  { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-  { id: 'disease', label: 'Disease Detection', icon: '🔬' },
-  { id: 'market', label: 'Market Prices', icon: '💹' },
-  { id: 'voice', label: 'Voice Assistant', icon: '🎙️' },
-  { id: 'planner', label: 'Profile & Planner', icon: '🗓️' },
+  { id: 'dashboard', label: 'Dashboard', icon: '◫' },
+  { id: 'disease', label: 'Disease Detection', icon: '✦' },
+  { id: 'market', label: 'Market Prices', icon: '◈' },
+  { id: 'voice', label: 'Voice Assistant', icon: '◉' },
+  { id: 'planner', label: 'Profile & Planner', icon: '⌁' },
 ];
 
 export default function Sidebar({ activeTab, setActiveTab }) {
@@ -15,7 +15,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
     <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-header">
         <div className="logo">
-          <span className="logo-icon">🌿</span>
+          <span className="logo-icon">AI</span>
           {!collapsed && <span className="logo-text">AgriVision</span>}
         </div>
         <button
@@ -34,6 +34,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
             className={`nav-item ${activeTab === item.id ? 'active' : ''}`}
             onClick={() => setActiveTab(item.id)}
             title={item.label}
+            aria-current={activeTab === item.id ? 'page' : undefined}
           >
             <span className="nav-icon">{item.icon}</span>
             {!collapsed && <span className="nav-label">{item.label}</span>}
