@@ -35,7 +35,7 @@ AI-powered smart farming assistant for small and medium farmers.
 ### Architecture
 - Frontend: React + Vite
 - Backend: Node.js + Express
-- Database: Designed for MongoDB/Firebase (MVP currently uses in-memory sample data)
+- Database: JSON persistence layer now active (server/data/storage.json), MongoDB-ready schema included
 - APIs: REST endpoints for weather, soil, disease analysis, market prices, and irrigation plan
 
 ### Tech Stack
@@ -76,12 +76,17 @@ AI-powered smart farming assistant for small and medium farmers.
 ### API Structure
 - GET /api/health
 - POST /api/auth/demo-login
+- GET /api/profile/:mobile
+- POST /api/profile
 - GET /api/weather
 - GET /api/soil
 - GET /api/crops/recommendations
 - GET /api/market-prices?crop=<name>
 - POST /api/disease/analyze
+- GET /api/disease/history/:mobile
 - POST /api/wow/irrigation-plan
+- POST /api/planner/season-plan
+- GET /api/dashboard/summary/:mobile
 
 ### Example API Contracts
 ```json
@@ -171,8 +176,11 @@ market_snapshots
 hackathon/
   public/
   server/
+    data/
+      storage.json
     data.js
     index.js
+    store.js
   src/
     api/
       client.js
@@ -180,6 +188,7 @@ hackathon/
       Dashboard.jsx
       DiseaseDetection.jsx
       MarketPrices.jsx
+      ProfilePlanner.jsx
       Sidebar.jsx
       VoiceAssistant.jsx
     data/
@@ -189,8 +198,14 @@ hackathon/
     index.css
     main.jsx
   index.html
+  netlify.toml
   package.json
   README.md
+  render.yaml
+  .env.example
+  docs/
+    DEMO_SCRIPT.md
+    JUDGE_QA.md
 ```
 
 ### Setup Instructions
@@ -218,6 +233,23 @@ npm run server
 ```bash
 npm run build
 ```
+
+6. Environment file
+```bash
+cp .env.example .env
+```
+
+### Deployment (Hackathon Ready)
+- Frontend (Netlify):
+  - Uses [netlify.toml](netlify.toml)
+  - Build command: npm run build
+  - Publish directory: dist
+- Backend (Render):
+  - Uses [render.yaml](render.yaml)
+  - Start command: npm run server
+  - Port: 5000
+- Set frontend environment variable in production:
+  - VITE_API_BASE_URL=https://<your-backend-domain>/api
 
 ### Sample Data
 - Weather: Pune forecast + humidity/rain/wind
@@ -279,6 +311,12 @@ npm run build
 - Auto-Irrigation Copilot
 - Inputs: Water stress + rain probability
 - Output: Irrigation decision, liters/acre, fuel savings, expected yield uplift
+
+### Additional Winning Add-ons Implemented
+- Farmer login session and persistent profile
+- Season planner with cost, revenue, and projected profit
+- Disease scan history linked by farmer mobile
+- Demo script and judge Q&A package in docs folder
 
 ### Demo Presentation Script
 - Step 1: Open Dashboard and move stress/rain sliders

@@ -6,7 +6,7 @@ function SeverityBadge({ severity }) {
   return <span className={`severity-badge ${severity.toLowerCase()}`}>{severity}</span>;
 }
 
-export default function DiseaseDetection() {
+export default function DiseaseDetection({ userMobile = '9999999999' }) {
   const [selectedCrop, setSelectedCrop] = useState('Rice');
   const [imageName, setImageName] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -31,6 +31,7 @@ export default function DiseaseDetection() {
       const response = await analyzeDisease({
         crop: selectedCrop,
         imageName: imageName || 'sample-leaf.jpg',
+        mobile: userMobile,
       });
       setResult(response.diagnosis);
     } catch {

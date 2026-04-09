@@ -5,6 +5,7 @@ const navItems = [
   { id: 'disease', label: 'Disease Detection', icon: '🔬' },
   { id: 'market', label: 'Market Prices', icon: '💹' },
   { id: 'voice', label: 'Voice Assistant', icon: '🎙️' },
+  { id: 'planner', label: 'Profile & Planner', icon: '🗓️' },
 ];
 
 export default function Sidebar({ activeTab, setActiveTab }) {

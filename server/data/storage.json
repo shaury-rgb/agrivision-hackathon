@@ -1,0 +1,41 @@
+{
+  "users": [
+    {
+      "id": "farmer-001",
+      "name": "Demo Farmer",
+      "mobile": "9999999999",
+      "region": "Pune",
+      "farmSizeAcres": 3,
+      "preferredLanguage": "Hindi",
+      "updatedAt": "2026-04-09T06:45:29.336Z"
+    }
+  ],
+  "fields": [
+    {
+      "id": "field-001",
+      "userId": "farmer-001",
+      "soilType": "Loamy",
+      "irrigationType": "Drip",
+      "currentCrop": "Rice",
+      "updatedAt": "2026-04-09T06:45:29.337Z"
+    }
+  ],
+  "scans": [],
+  "plans": [
+    {
+      "id": "plan-1775717153185",
+      "mobile": "9999999999",
+      "crop": "Rice",
+      "farmSizeAcres": 3,
+      "estimatedCost": 54000,
+      "estimatedRevenue": 102000,
+      "activities": [
+        "Week 1: Soil prep and nutrient balancing",
+        "Week 2: Seed treatment and sowing",
+        "Week 3-6: Irrigation and pest monitoring",
+        "Week 7+: Market tracking and harvest planning"
+      ],
+      "createdAt": "2026-04-09T06:45:53.185Z"
+    }
+  ]
+}
