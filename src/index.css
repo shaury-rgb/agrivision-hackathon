@@ -1,0 +1,47 @@
+:root {
+  --text-primary: #0f172a;
+  --text-muted: #475569;
+  --surface-soft: #f6f9fc;
+  --page-bg: #f1f5f9;
+  --border-soft: #d8e1ec;
+
+  --brand-primary: #1d4ed8;
+  --brand-secondary: #059669;
+  --success: #16a34a;
+
+  font-family: 'Sora', 'Segoe UI', sans-serif;
+  color: var(--text-primary);
+  line-height: 1.5;
+  font-weight: 500;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at 12% 14%, rgba(29, 78, 216, 0.15), transparent 35%),
+    radial-gradient(circle at 88% 20%, rgba(5, 150, 105, 0.12), transparent 28%),
+    var(--page-bg);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Bricolage Grotesque', 'Segoe UI', sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
