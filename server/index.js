@@ -224,6 +224,61 @@ app.get('/api/dashboard/summary/:mobile', async (req, res) => {
   });
 });
 
+app.post('/api/assistant/chat', async (req, res) => {
+  const message = (req.body?.message || '').toString().trim();
+  const mobile = (req.body?.mobile || '9999999999').toString();
+
+  if (!message) {
+    res.status(400).json({ message: 'message is required' });
+    return;
+  }
+
+  const text = message.toLowerCase();
+  const db = await readStore();
+  const recentScan = db.scans.find((item) => item.mobile === mobile);
+
+  let reply = 'I can help with weather, market prices, disease scans, irrigation planning, and crop recommendations. Ask me anything specific.';
+
+  if (text.includes('weather')) {
+    reply = `Current weather in ${weatherData.location}: ${weatherData.temperature}°C, ${weatherData.condition}. Humidity ${weatherData.humidity}% and expected rainfall ${weatherData.rainfall}mm.`;
+  } else if (text.includes('market') || text.includes('price')) {
+    const top = [...marketPrices]
+      .sort((a, b) => (b.market - b.msp) - (a.market - a.msp))
+      .slice(0, 2)
+      .map((item) => `${item.crop} at ${item.market} ${item.unit}`)
+      .join(' and ');
+    reply = `Top opportunities right now are ${top}. I can compare a specific crop against MSP if you share crop name.`;
+  } else if (text.includes('crop') || text.includes('season')) {
+    const topCrops = cropRecommendations
+      .slice(0, 3)
+      .map((item) => `${item.name} (${item.confidence}% fit)`)
+      .join(', ');
+    reply = `Best next-crop picks based on current profile are ${topCrops}.`;
+  } else if (text.includes('fertilizer') || text.includes('soil')) {
+    reply = `Soil snapshot: N ${soilData.nitrogen}, P ${soilData.phosphorus}, K ${soilData.potassium}, pH ${soilData.ph}. Nitrogen is relatively lower, so prioritize nitrogen-rich input with balanced phosphorus.`;
+  } else if (text.includes('disease') || text.includes('scan')) {
+    if (recentScan) {
+      reply = `Latest scan for ${recentScan.crop}: ${recentScan.diagnosis} (${recentScan.confidence}% confidence, ${recentScan.severity} severity). Open Disease Detection to run a new scan.`;
+    } else {
+      reply = 'No recent scans found for your account. Upload a leaf image in Disease Detection and I will summarize the result here.';
+    }
+  } else if (text.includes('hello') || text.includes('hi') || text.includes('namaste')) {
+    reply = 'Namaste. I am your AgriVision assistant. Ask me about weather, market prices, disease scans, or crop plans.';
+  }
+
+  res.json({
+    reply,
+    context: {
+      weatherLocation: weatherData.location,
+      marketItems: marketPrices.length,
+      recentScan: recentScan ? {
+        crop: recentScan.crop,
+        diagnosis: recentScan.diagnosis,
+      } : null,
+    },
+  });
+});
+
 app.listen(port, () => {
   console.log(`AgriVision API listening on http://localhost:${port}`);
 });

@@ -1,5 +1,10 @@
 import { useMemo, useState } from 'react';
-import { voiceResponses } from '../data/mockData';
+import { askAssistant } from '../api/client';
+
+const defaultGreetings = [
+  'Namaste! I am AgriVision, your farming assistant. How can I help today?',
+  'Hello farmer! Ask me about weather, crops, prices, or diseases.',
+];
 
 const quickPrompts = [
   'Weather update',
@@ -8,43 +13,41 @@ const quickPrompts = [
   'Fertilizer recommendation',
 ];
 
-function getResponse(input) {
-  const text = input.toLowerCase();
-
-  if (text.includes('weather')) return voiceResponses.weather;
-  if (text.includes('crop')) return voiceResponses.crop;
-  if (text.includes('price') || text.includes('market')) return voiceResponses.price;
-  if (text.includes('disease')) return voiceResponses.disease;
-  if (text.includes('fertilizer')) return voiceResponses.fertilizer;
-  if (text.includes('hello') || text.includes('hi') || text.includes('namaste')) {
-    return voiceResponses.greetings[0];
-  }
-
-  return voiceResponses.fallback;
-}
-
-export default function VoiceAssistant() {
+export default function VoiceAssistant({ userMobile = '9999999999' }) {
   const [input, setInput] = useState('');
+  const [isReplying, setIsReplying] = useState(false);
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      text: voiceResponses.greetings[0],
+      text: defaultGreetings[0],
     },
   ]);
 
-  const placeholder = useMemo(() => voiceResponses.greetings[1], []);
+  const placeholder = useMemo(() => defaultGreetings[1], []);
 
-  const sendMessage = (value) => {
+  const sendMessage = async (value) => {
     const content = value.trim();
     if (!content) return;
 
-    const reply = getResponse(content);
-    setMessages((prev) => [
-      ...prev,
-      { role: 'user', text: content },
-      { role: 'assistant', text: reply },
-    ]);
+    setMessages((prev) => [...prev, { role: 'user', text: content }]);
     setInput('');
+
+    setIsReplying(true);
+    try {
+      const response = await askAssistant({ message: content, mobile: userMobile });
+      const reply = response?.reply || 'I could not generate a reply right now.';
+      setMessages((prev) => [...prev, { role: 'assistant', text: reply }]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          text: 'Assistant service is unavailable. Please ensure backend is running.',
+        },
+      ]);
+    } finally {
+      setIsReplying(false);
+    }
   };
 
   return (
@@ -81,15 +84,23 @@ export default function VoiceAssistant() {
             type="text"
             value={input}
             placeholder={placeholder}
+            disabled={isReplying}
             onChange={(event) => setInput(event.target.value)}
             onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                sendMessage(input);
+              if (event.key === 'Enter' && !isReplying) {
+                void sendMessage(input);
               }
             }}
           />
-          <button type="button" className="primary-btn" onClick={() => sendMessage(input)}>
-            Ask
+          <button
+            type="button"
+            className="primary-btn"
+            onClick={() => {
+              void sendMessage(input);
+            }}
+            disabled={isReplying}
+          >
+            {isReplying ? 'Thinking...' : 'Ask'}
           </button>
         </div>
       </div>

@@ -13,6 +13,36 @@ export async function fetchMarketPrices(cropQuery = '') {
   return parseResponse(response);
 }
 
+export async function fetchWeather() {
+  const response = await fetch(`${API_BASE}/weather`);
+  return parseResponse(response);
+}
+
+export async function fetchSoil() {
+  const response = await fetch(`${API_BASE}/soil`);
+  return parseResponse(response);
+}
+
+export async function fetchCropRecommendations() {
+  const response = await fetch(`${API_BASE}/crops/recommendations`);
+  return parseResponse(response);
+}
+
+export async function fetchDashboardSummary(mobile) {
+  const response = await fetch(`${API_BASE}/dashboard/summary/${encodeURIComponent(mobile)}`);
+  return parseResponse(response);
+}
+
+export async function askAssistant(payload) {
+  const response = await fetch(`${API_BASE}/assistant/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  return parseResponse(response);
+}
+
 export async function analyzeDisease(payload) {
   const response = await fetch(`${API_BASE}/disease/analyze`, {
     method: 'POST',

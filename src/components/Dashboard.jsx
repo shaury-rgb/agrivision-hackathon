@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { fetchIrrigationPlan } from '../api/client';
+import {
+  fetchWeather,
+  fetchSoil,
+  fetchCropRecommendations,
+  fetchDashboardSummary,
+} from '../api/client';
 import { weatherData, cropRecommendations, dashboardStats, soilData } from '../data/mockData';
 
 function StatCard({ stat }) {
@@ -15,35 +21,35 @@ function StatCard({ stat }) {
   );
 }
 
-function WeatherWidget() {
+function WeatherWidget({ data }) {
   return (
     <div className="weather-widget glass-card">
       <div className="weather-header">
         <h3>🌤️ Weather</h3>
-        <span className="weather-location">{weatherData.location}</span>
+        <span className="weather-location">{data.location}</span>
       </div>
       <div className="weather-main">
         <div className="weather-temp">
-          <span className="temp-value">{weatherData.temperature}°</span>
-          <span className="temp-condition">{weatherData.condition}</span>
+          <span className="temp-value">{data.temperature}°</span>
+          <span className="temp-condition">{data.condition}</span>
         </div>
         <div className="weather-details">
           <div className="weather-detail">
             <span className="detail-label">Humidity</span>
-            <span className="detail-value">{weatherData.humidity}%</span>
+            <span className="detail-value">{data.humidity}%</span>
           </div>
           <div className="weather-detail">
             <span className="detail-label">Rainfall</span>
-            <span className="detail-value">{weatherData.rainfall}mm</span>
+            <span className="detail-value">{data.rainfall}mm</span>
           </div>
           <div className="weather-detail">
             <span className="detail-label">Wind</span>
-            <span className="detail-value">{weatherData.windSpeed} km/h</span>
+            <span className="detail-value">{data.windSpeed} km/h</span>
           </div>
         </div>
       </div>
       <div className="weather-forecast">
-        {weatherData.forecast.map((day) => (
+        {data.forecast.map((day) => (
           <div key={day.day} className="forecast-day">
             <span className="forecast-label">{day.day}</span>
             <span className="forecast-icon">{day.icon}</span>
@@ -55,13 +61,13 @@ function WeatherWidget() {
   );
 }
 
-function SoilWidget() {
+function SoilWidget({ data }) {
   const soilItems = [
-    { label: 'Nitrogen (N)', value: soilData.nitrogen, max: 100, unit: 'kg/ha', color: '#10b981' },
-    { label: 'Phosphorus (P)', value: soilData.phosphorus, max: 80, unit: 'kg/ha', color: '#3b82f6' },
-    { label: 'Potassium (K)', value: soilData.potassium, max: 100, unit: 'kg/ha', color: '#8b5cf6' },
-    { label: 'pH Level', value: soilData.ph, max: 14, unit: '', color: '#f59e0b' },
-    { label: 'Moisture', value: soilData.moisture, max: 100, unit: '%', color: '#06b6d4' },
+    { label: 'Nitrogen (N)', value: data.nitrogen, max: 100, unit: 'kg/ha', color: '#10b981' },
+    { label: 'Phosphorus (P)', value: data.phosphorus, max: 80, unit: 'kg/ha', color: '#3b82f6' },
+    { label: 'Potassium (K)', value: data.potassium, max: 100, unit: 'kg/ha', color: '#8b5cf6' },
+    { label: 'pH Level', value: data.ph, max: 14, unit: '', color: '#f59e0b' },
+    { label: 'Moisture', value: data.moisture, max: 100, unit: '%', color: '#06b6d4' },
   ];
 
   return (
@@ -214,7 +220,48 @@ function AutomationLab() {
   );
 }
 
-export default function Dashboard() {
+export default function Dashboard({ userMobile = '9999999999' }) {
+  const [weather, setWeather] = useState(weatherData);
+  const [soil, setSoil] = useState(soilData);
+  const [crops, setCrops] = useState(cropRecommendations);
+  const [stats, setStats] = useState(dashboardStats);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const load = async () => {
+      try {
+        const [weatherResponse, soilResponse, cropsResponse, summaryResponse] = await Promise.all([
+          fetchWeather(),
+          fetchSoil(),
+          fetchCropRecommendations(),
+          fetchDashboardSummary(userMobile),
+        ]);
+
+        if (!isMounted) return;
+
+        setWeather(weatherResponse || weatherData);
+        setSoil(soilResponse || soilData);
+        setCrops(Array.isArray(cropsResponse) && cropsResponse.length ? cropsResponse : cropRecommendations);
+
+        setStats((prev) => {
+          const next = [...prev];
+          next[0] = { ...next[0], value: String(summaryResponse?.totalPlans ?? next[0].value), label: 'Season Plans' };
+          next[1] = { ...next[1], value: String(summaryResponse?.totalScans ?? next[1].value), label: 'Scans Logged' };
+          next[2] = { ...next[2], value: String(summaryResponse?.severeAlerts ?? next[2].value), label: 'Severe Alerts' };
+          return next;
+        });
+      } catch {
+        // Keep fallback mock values if backend is unavailable.
+      }
+    };
+
+    load();
+    return () => {
+      isMounted = false;
+    };
+  }, [userMobile]);
+
   return (
     <div className="dashboard">
       <div className="page-header">
@@ -232,15 +279,15 @@ export default function Dashboard() {
 
       {/* Stats Row */}
       <div className="stats-grid">
-        {dashboardStats.map((stat) => (
+        {stats.map((stat) => (
           <StatCard key={stat.label} stat={stat} />
         ))}
       </div>
 
       {/* Main Grid */}
       <div className="dashboard-grid">
-        <WeatherWidget />
-        <SoilWidget />
+        <WeatherWidget data={weather} />
+        <SoilWidget data={soil} />
       </div>
 
       <div className="dashboard-grid">
@@ -252,7 +299,7 @@ export default function Dashboard() {
         <h2 className="section-title">🌾 AI Crop Recommendations</h2>
         <p className="section-subtitle">Based on your soil data, weather patterns, and historical yields</p>
         <div className="crops-grid">
-          {cropRecommendations.map((crop) => (
+          {crops.map((crop) => (
             <CropCard key={crop.id} crop={crop} />
           ))}
         </div>
