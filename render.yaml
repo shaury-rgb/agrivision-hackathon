@@ -3,7 +3,7 @@ services:
     name: agrivision-api
     env: node
     plan: free
-    buildCommand: npm ci --only=production
+    buildCommand: npm install
     startCommand: node server/index.js
     healthCheckPath: /api/health
     envVars:
